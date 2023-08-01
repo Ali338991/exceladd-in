@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
-
 const dataSourceUrl =
   "https://excel-add-in.surge.sh";
 
@@ -31,7 +28,7 @@ async function insertSheets() {
 
         // Set up the insert options.
         const options = {
-          sheetNamesToInsert: ["Template"], // Insert the "Template" worksheet from the source workbook.
+          sheetNamesToInsert: [], // Initialize as an empty array.
           positionType: Excel.WorksheetPositionType.after, // Insert after the `relativeTo` sheet.
           relativeTo: "Sheet1",
         }; // The sheet relative to which the other worksheets will be inserted. Used with `positionType`.
@@ -73,6 +70,25 @@ async function insertSheets() {
         const range = sheet.getRange(address);
         range.values = newSalesData;
         sheet.activate();
+        await context.sync();
+
+        // STEP 3: Get the names of all sheets in the current workbook and set the sheetNamesToInsert option.
+        const sheets = workbook.worksheets;
+        sheets.load("items/name");
+        await context.sync();
+
+        // Extract sheet names from the uploaded file and set them in sheetNamesToInsert option.
+        options.sheetNamesToInsert = sheets.items.map((sheet) => sheet.name);
+
+        // Log the sheet names (optional).
+        options.sheetNamesToInsert.forEach((name) => {
+          console.log(name);
+        });
+
+        // Re-insert the external worksheet with the updated sheetNamesToInsert option.
+        await workbook.insertWorksheetsFromBase64(workbookContents, options);
+        await context.sync();
+        
         return context.sync();
       } catch (error) {
         // In your production add-in, you should notify the user in the add-in UI.
