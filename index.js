@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
-
 const dataSourceUrl = "https://excel-add-in.surge.sh";
 
 Office.onReady((info) => {
@@ -14,7 +11,6 @@ async function insertSheets() {
   try {
     const myFile = document.getElementById("fileInput").files[0];
 
-    // Check if a file is selected.
     if (!myFile) {
       console.error("No file selected.");
       return;
@@ -25,39 +21,26 @@ async function insertSheets() {
     reader.onload = async (event) => {
       Excel.run(async (context) => {
         try {
-          // Remove the metadata before the base64-encoded string.
           const startIndex = reader.result.toString().indexOf("base64,");
-
-          // 7 is the length of the "base64," string to skip past.
           const workbookContents = reader.result.toString().substr(startIndex + 7);
 
-          // STEP 1: Insert the template into the workbook.
           const workbook = context.workbook;
 
-          // Set up the insert options.
           const options = {
-            sheetNamesToInsert: ["TemplateAli"], // Insert the "TemplateAli" worksheet from the source workbook.
-            positionType: Excel.WorksheetPositionType.after, // Insert after the `relativeTo` sheet.
+            sheetNamesToInsert: ["TemplateAli"],
+            positionType: Excel.WorksheetPositionType.after,
             relativeTo: "Sheet1",
-          }; // The sheet relative to which the other worksheets will be inserted. Used with `positionType`.
+          };
 
-          // Insert the external worksheet.
           workbook.insertWorksheetsFromBase64(workbookContents, options);
 
-          // In Excel on the web, if the worksheet being inserted contains unsupported features,
-          // such as Comment, Slicer, Chart, and PivotTable, insertWorksheetsFromBase64 will fail.
-          // In your production add-in, you should notify the user in the add-ins UI.
-          // As a workaround they can use Excel on desktop, or choose a different worksheet.
           await context.sync();
 
-          // STEP 2: Add data from the "Service".
           const sheet = context.workbook.worksheets.getItem("TemplateAli");
 
-          // Get data from your REST API. For this sample, the JSON is fetched from a file in the repo.
           let response = await fetch(dataSourceUrl + "/data.json");
           if (response.ok) {
             const json = await response.json();
-            // Map JSON to table columns.
             const newSalesData = json.salesData.map((item) => [
               item.PRODUCT,
               item.QTR1,
@@ -66,12 +49,9 @@ async function insertSheets() {
               item.QTR4,
             ]);
 
-            // We know that the table in this template starts at B5, so we start with that.
-            // Next, we calculate the total number of rows from our sales data.
             const startRow = 5;
             const address = "B" + startRow + ":F" + (newSalesData.length + startRow - 1);
 
-            // Write the sales data to the table in the template.
             const range = sheet.getRange(address);
             range.values = newSalesData;
             sheet.activate();
@@ -80,14 +60,12 @@ async function insertSheets() {
             console.error("HTTP-Error: " + response.status);
           }
         } catch (error) {
-          // In your production add-in, you should notify the user in the add-in UI.
           console.log('error==>',error);
         }
       });
     };
 
-    // Read the file as a data URL so that we can parse the base64-encoded string.
-    reader.readAsDataURL(myFile);
+    reader.readAsBinaryString(myFile);
   } catch (error) {
     console.error(error);
   }
