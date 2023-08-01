@@ -22,7 +22,7 @@
             {
                 "type": "image",
                 "order": 100,
-                "url": "https://officedev.github.io/Office-Add-in-samples/Samples/excel-insert-file/assets/excel-insert-file-overview.png",
+                "url": "https://excel-add-in.surge.sh/assets/excel-insert-file-overview.png",
                 "alt": "Diagram showing the sample inserting an external spreadsheet into the existing spreadsheet."
             }
         ],
