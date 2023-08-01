@@ -25,7 +25,6 @@ async function insertSheets() {
         const workbookContents = reader.result
           .toString()
           .substr(startIndex + 7);
-        console.log('workbookContents', workbookContents);
         // STEP 1: Insert the template into the workbook.
         const workbook = context.workbook;
 
@@ -44,35 +43,35 @@ async function insertSheets() {
         // In your production add-in, you should notify the user in the add-ins UI.
         // As a workaround they can use Excel on desktop, or choose a different worksheet.
         await context.sync();
-        console.log('return log');
-        return
         // STEP 2: Add data from the "Service".
         const sheet = context.workbook.worksheets.getItem("TestTemplate");
 
         // Get data from your REST API. For this sample, the JSON is fetched from a file in the repo.
         let response = await fetch(dataSourceUrl + "/data.json");
         const json = await response.json();
+        console.log('json', json);
+
         if (!response.ok) {
           console.error("HTTP-Error: " + response.status);
         }
-        // Map JSON to table columns.
-        const newSalesData = json.salesData.map((item) => [
-          item.PRODUCT,
-          item.QTR1,
-          item.QTR2,
-          item.QTR3,
-          item.QTR4,
-        ]);
+        // // Map JSON to table columns.
+        // const newSalesData = json.salesData.map((item) => [
+        //   item.PRODUCT,
+        //   item.QTR1,
+        //   item.QTR2,
+        //   item.QTR3,
+        //   item.QTR4,
+        // ]);
 
-        // We know that the table in this template starts at B5, so we start with that.
-        // Next, we calculate the total number of rows from our sales data.
-        const startRow = 5;
-        const address =
-          "B" + startRow + ":F" + (newSalesData.length + startRow - 1);
+        // // We know that the table in this template starts at B5, so we start with that.
+        // // Next, we calculate the total number of rows from our sales data.
+        // const startRow = 5;
+        // const address =
+        //   "B" + startRow + ":F" + (newSalesData.length + startRow - 1);
 
-        // Write the sales data to the table in the template.
-        const range = sheet.getRange(address);
-        range.values = newSalesData;
+        // // Write the sales data to the table in the template.
+        // const range = sheet.getRange(address);
+        // range.values = newSalesData;
         sheet.activate();
         return context.sync();
       } catch (error) {
